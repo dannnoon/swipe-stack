@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:stack_matcher/api/Questions.dart';
+import 'package:stack_matcher/api/endpoints.dart';
 import 'package:stack_matcher/app_colors.dart';
 import 'package:stack_matcher/domain/question.dart';
 import 'package:stack_matcher/infrastructure/question_buffer.dart';
@@ -16,15 +19,34 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   static const _COLOR_ANIMATION_DURATION = Duration(milliseconds: 500);
-  final QuestionBuffer _questionBuffer = QuestionBuffer();
+
+  QuestionBuffer _questionBuffer = QuestionBuffer();
 
   List<Question> _questions = [];
   bool dragging = false;
   Color _highlightLeftColor = Colors.white;
   Color _highlightRightColor = Colors.white;
 
+  StreamSubscription<Questions> _disposable;
+
   @override
   void initState() {
+    if (_questionBuffer.questions == null && _disposable == null) {
+      _disposable = getHttp().asStream().listen((q) {
+        _questionBuffer.questions = q.items
+            .map((item) => Question(
+                  item.title,
+                  item.questionId.toString(),
+                  item.link,
+                  item.owner.profileImage,
+                  item.owner.displayName,
+                ))
+            .toList();
+        setState(() {
+          _questions = _questionBuffer.nextQuestions();
+        });
+      });
+    }
     _questions = _questionBuffer.initialQuestions();
     super.initState();
   }
@@ -130,60 +152,60 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   RoundedRectangleBorder _buildCardBorder() {
     return RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(24),
-              bottomRight: Radius.circular(4),
-              bottomLeft: Radius.circular(4)));
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(8),
+            topRight: Radius.circular(24),
+            bottomRight: Radius.circular(4),
+            bottomLeft: Radius.circular(4)));
   }
 
   Padding _buildAuthorHeader(Question question) {
     return Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: <Widget>[
-                  Image(
-                    width: 48,
-                    height: 48,
-                    image: NetworkImage(question.avatarUrl),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        question.authorName,
-                        style: TextStyle(
-                          color: AppColors.flutterBlue,
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  )
-                ],
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: <Widget>[
+          Image(
+            width: 48,
+            height: 48,
+            image: NetworkImage(question.avatarUrl),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                question.authorName,
+                style: TextStyle(
+                  color: AppColors.flutterBlue,
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            );
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   Padding _buildDivider() {
     return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Container(
-                color: AppColors.flutterBlue,
-                height: 3,
-              ),
-            );
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Container(
+        color: AppColors.flutterBlue,
+        height: 3,
+      ),
+    );
   }
 
   Padding _buildPostTitle(Question question) {
     return Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                question.title,
-                style: TextStyle(fontSize: 17),
-              ),
-            );
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        question.title,
+        style: TextStyle(fontSize: 17),
+      ),
+    );
   }
 
   void _onDragEnd(DraggableDetails dragDetails) {
