@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stack_matcher/api/endpoints.dart';
-import 'package:stack_matcher/oauth_page.dart';
+import 'package:stack_matcher/home_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,11 +9,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: OauthPage()
-//      home: HomePage(title: 'Slack Matcher'),
-        );
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomePage(title: 'Slack Matcher'),
+    );
   }
 }
