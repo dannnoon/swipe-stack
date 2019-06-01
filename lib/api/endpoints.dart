@@ -2,23 +2,49 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stack_matcher/api/Questions.dart';
 import 'package:http/http.dart' as http;
-
 
 var apiBaseUrl = "https://api.stackexchange.com";
 
 Future<Questions> getHttp() async {
-
   Questions questions;
 
   try {
-    var apiResponse = await http.get(apiBaseUrl + "/2.2/questions?page=1&pagesize=100&order=desc&sort=creation&tagged=flutter&site=stackoverflow");
+    var apiResponse = await http.get(apiBaseUrl +
+        "/2.2/questions?page=1&pagesize=100&order=desc&sort=creation&tagged=flutter&site=stackoverflow");
     final jsonData = json.decode(apiResponse.body);
     questions = Questions.fromJson(jsonData);
     return questions;
   } catch (e) {
     print(e);
+  }
+}
+
+Future<bool> replyQuestion(String questionId, String body) async {
+  var client = new http.Client();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var accessToken = prefs.get("access_token");
+
+  try {
+    var response = await client
+        .post(apiBaseUrl + "/2.2/posts/56406001/comments/add", body: {
+      'id': questionId,
+      "access_token": accessToken,
+      "body": body,
+      "preview": true,
+      "key": "voo0Xe1FUc*MRu8kudmEjw(("
+    });
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  } finally {
+    client.close();
   }
 }
 
@@ -42,5 +68,6 @@ class OauthRequest {
   final String code;
   final String redirect_uri;
 
-  OauthRequest(this.client_id, this.client_secret, this.code, this.redirect_uri);
+  OauthRequest(
+      this.client_id, this.client_secret, this.code, this.redirect_uri);
 }
