@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:stack_matcher/api/Questions.dart';
-import 'package:stack_matcher/api/endpoints.dart';
 import 'package:stack_matcher/app_colors.dart';
 import 'package:stack_matcher/domain/question.dart';
 import 'package:stack_matcher/infrastructure/question_buffer.dart';
@@ -27,27 +25,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Color _highlightLeftColor = Colors.white;
   Color _highlightRightColor = Colors.white;
 
-  StreamSubscription<Questions> _disposable;
+  StreamSubscription<bool> _disposable;
 
   @override
   void initState() {
-    if (_questionBuffer.questions == null && _disposable == null) {
-      _disposable = getHttp().asStream().listen((q) {
-        _questionBuffer.questions = q.items
-            .map((item) => Question(
-                  item.title,
-                  item.questionId.toString(),
-                  item.link,
-                  item.owner.profileImage,
-                  item.owner.displayName,
-                ))
-            .toList();
-        setState(() {
-          _questions = _questionBuffer.nextQuestions();
-        });
-      });
-    }
-    _questions = _questionBuffer.initialQuestions();
+    _loadData();
     super.initState();
   }
 
@@ -57,8 +39,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: _buildStack());
+        body: _questions.length > 0 ? _buildStack() : _buildProgress());
   }
+
+  Center _buildProgress() => Center(
+        child: CircularProgressIndicator(),
+      );
 
   Widget _buildStack() => Center(
         child: Stack(
@@ -220,9 +206,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_isRight(direction)) {
     } else if (_isLeft(direction)) {
       setState(() {
-        _questions = _questionBuffer.nextQuestions();
+        final newQuestions = _questionBuffer.nextQuestions();
+        if (newQuestions.isEmpty) {
+          _questions = [];
+          _loadData();
+        } else {
+          _questions = newQuestions;
+        }
       });
     }
+  }
+
+  void _loadData() {
+    _disposable = _questionBuffer.loadData().listen((data) {
+      setState(() {
+        _questions = _questionBuffer.initialQuestions();
+      });
+    });
   }
 
   bool _isRight(double direction) => (direction > 0 && direction < pi / 2) || (direction < 0 && direction > -pi / 2);
@@ -232,4 +232,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _height() => MediaQuery.of(context).size.height;
 
   double _width() => MediaQuery.of(context).size.width;
+
+  @override
+  void dispose() {
+    _disposable?.cancel();
+    super.dispose();
+  }
 }

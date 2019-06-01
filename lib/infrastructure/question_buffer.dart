@@ -1,24 +1,34 @@
+import 'dart:async';
+
+import 'package:rxdart/rxdart.dart';
+import 'package:stack_matcher/api/Questions.dart';
+import 'package:stack_matcher/api/endpoints.dart';
 import 'package:stack_matcher/domain/question.dart';
 
 class QuestionBuffer {
-//  List<Question> questions = [
-//    Question(
-//        "Problem 1", "9ud9aud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 2", "9ud9amud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 3", "9ud9abud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 4", "9ud9a2aud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 5", "9ud942aud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 6", "9ud39aud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//    Question(
-//        "Problem 7", "9uwd9aud", "www.google.com", "https://image.flaticon.com/icons/png/512/78/78373.png", "Name###"),
-//  ];
-
+  int page = 0;
   List<Question> questions;
+  StreamSubscription<Questions> _dataSubscription;
+
+  Observable<bool> loadData() {
+    page += 1;
+    PublishSubject subject = PublishSubject<bool>();
+    _dataSubscription = getHttp(page).asStream().listen((data) {
+      questions = data.items
+          .map(
+            (item) => Question(
+                  item.title,
+                  item.questionId.toString(),
+                  item.link,
+                  item.owner.profileImage,
+                  item.owner.displayName,
+                ),
+          )
+          .toList();
+      subject.add(true);
+    });
+    return subject.stream;
+  }
 
   List<Question> initialQuestions() {
     if (questions == null) {
@@ -33,5 +43,9 @@ class QuestionBuffer {
     }
     questions.removeAt(0);
     return questions.take(3).toList();
+  }
+
+  void dispose() {
+    _dataSubscription?.cancel();
   }
 }
