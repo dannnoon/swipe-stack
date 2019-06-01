@@ -6,6 +6,8 @@ import 'package:stack_matcher/app_colors.dart';
 import 'package:stack_matcher/domain/question.dart';
 import 'package:stack_matcher/infrastructure/question_buffer.dart';
 
+import 'answer_page.dart';
+
 class HomePage extends StatefulWidget {
   final String title;
 
@@ -204,6 +206,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (dragDetails.velocity.pixelsPerSecond.distance < ((_height() + _width()) / 2) * 0.2) return;
 
     if (_isRight(direction)) {
+      var questionId = _questions[0].id;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AnswerPage(title: "Answer", questionId: questionId)),
+      );
     } else if (_isLeft(direction)) {
       setState(() {
         final newQuestions = _questionBuffer.nextQuestions();
