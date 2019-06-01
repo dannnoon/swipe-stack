@@ -8,12 +8,12 @@ import 'package:http/http.dart' as http;
 
 var apiBaseUrl = "https://api.stackexchange.com";
 
-Future<Questions> getHttp() async {
+Future<Questions> getHttp(int page) async {
   Questions questions;
 
   try {
     var apiResponse = await http.get(apiBaseUrl +
-        "/2.2/questions?page=1&pagesize=100&order=desc&sort=creation&tagged=flutter&site=stackoverflow");
+        "/2.2/questions?page=$page&pagesize=100&order=desc&sort=creation&tagged=flutter&site=stackoverflow");
     final jsonData = json.decode(apiResponse.body);
     questions = Questions.fromJson(jsonData);
     return questions;
