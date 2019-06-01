@@ -22,6 +22,26 @@ Future<Questions> getHttp() async {
   }
 }
 
+Future<bool> replyQuestion(String questionId, String body) async {
+  var client = new http.Client();
+
+  try {
+    var response = await client.post(apiBaseUrl + "/2.2/posts/56406001/comments/add",
+        body: {'id': questionId, 'access_token': "dupa", "body": body, "preview": true, "key": "voo0Xe1FUc*MRu8kudmEjw(("});
+
+    // USTAWIC ACCESS TOKEN | DODAC KEY DO SHARED PREFS
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+
+  } finally {
+    client.close();
+  }
+}
+
 Future<String> authenticate(String code) async {
   final dio = new Dio();
   final response = await dio.post(
