@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stack_matcher/app_colors.dart';
 import 'package:stack_matcher/domain/question.dart';
 import 'package:stack_matcher/infrastructure/question_buffer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -204,6 +205,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (dragDetails.velocity.pixelsPerSecond.distance < ((_height() + _width()) / 2) * 0.2) return;
 
     if (_isRight(direction)) {
+      _openUrl(_questions[0]);
     } else if (_isLeft(direction)) {
       setState(() {
         final newQuestions = _questionBuffer.nextQuestions();
@@ -232,6 +234,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _height() => MediaQuery.of(context).size.height;
 
   double _width() => MediaQuery.of(context).size.width;
+
+  void _openUrl(Question question) {
+    _launchURL(question.url);
+  }
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   void dispose() {

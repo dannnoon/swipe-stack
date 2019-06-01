@@ -78,7 +78,7 @@ class _OauthPageState extends State<OauthPage> {
   FutureOr _navigateToHome(FutureOr value) {
     return Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomePage(title: 'Slack Matcher')),
+      MaterialPageRoute(builder: (context) => HomePage(title: 'Stack Matcher')),
     );
   }
 }
