@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stack_matcher/api/Questions.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,12 +26,13 @@ Future<Questions> getHttp() async {
 Future<bool> replyQuestion(String questionId, String body) async {
   var client = new http.Client();
 
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var accessToken = prefs.get("access_token");
+
   try {
     var response = await client.post(apiBaseUrl + "/2.2/posts/56406001/comments/add",
-        body: {'id': questionId, 'access_token': "dupa", "body": body, "preview": true, "key": "voo0Xe1FUc*MRu8kudmEjw(("});
-
-    // USTAWIC ACCESS TOKEN | DODAC KEY DO SHARED PREFS
-
+        body: {'id': questionId, accessToken: "dupa", "body": body, "preview": true, "key": "voo0Xe1FUc*MRu8kudmEjw(("});
+    
     if(response.statusCode == 200) {
       return true;
     } else {
