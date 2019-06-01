@@ -1,6 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:stack_matcher/app_colors.dart';
+import 'package:stack_matcher/domain/question.dart';
+import 'package:stack_matcher/infrastructure/question_buffer.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -11,12 +14,20 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  List<Question> questions = [
-    Question("Pierwszy"),
-    Question("Drugi"),
-    Question("Trzeci"),
-  ];
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  static const _COLOR_ANIMATION_DURATION = Duration(milliseconds: 500);
+  final QuestionBuffer _questionBuffer = QuestionBuffer();
+
+  List<Question> _questions = [];
+  bool dragging = false;
+  Color _highlightLeftColor = Colors.white;
+  Color _highlightRightColor = Colors.white;
+
+  @override
+  void initState() {
+    _questions = _questionBuffer.initialQuestions();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +41,41 @@ class _HomePageState extends State<HomePage> {
   Widget _buildStack() => Center(
         child: Stack(
           alignment: Alignment.center,
-          children: <Widget>[..._buildCards()],
+          children: <Widget>[
+            _buildBackground(),
+            ..._buildCards(),
+          ],
         ),
+      );
+
+  Widget _buildBackground() => Row(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Expanded(
+            flex: 1,
+            child: AnimatedContainer(
+              duration: _COLOR_ANIMATION_DURATION,
+              color: _highlightLeftColor,
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: AnimatedContainer(
+              duration: _COLOR_ANIMATION_DURATION,
+              color: _highlightRightColor,
+            ),
+          ),
+        ],
       );
 
   List<Widget> _buildCards() {
     List<Widget> cards = List();
-    for (int i = questions.length - 1; i >= 0; i--) {
+    for (int i = _questions.length - 1; i >= 0; i--) {
       if (i > 0) {
-        cards.add(_buildPositionedCard(i, questions[i]));
+        cards.add(_buildPositionedCard(i, _questions[i]));
       } else {
-        cards.add(_buildDraggableCard(i, questions[i]));
+        cards.add(_buildDraggableCard(i, _questions[i]));
       }
     }
     print(cards);
@@ -52,6 +87,12 @@ class _HomePageState extends State<HomePage> {
         child: Draggable(
           child: _buildCard(index, question),
           feedback: _buildCard(index, question),
+          onDragStarted: () {
+            setState(() {
+              _highlightLeftColor = AppColors.redHighlight;
+              _highlightRightColor = AppColors.greenHighlight;
+            });
+          },
           childWhenDragging: Container(),
           onDragEnd: _onDragEnd,
           affinity: Axis.horizontal,
@@ -68,12 +109,44 @@ class _HomePageState extends State<HomePage> {
       key: ValueKey(question.title),
       padding: const EdgeInsets.all(8.0),
       child: Card(
-        elevation: (questions.length - index).toDouble(),
+        elevation: (_questions.length - index).toDouble(),
         color: Colors.white,
         child: Container(
-          child: Text(
-            question.title,
-            style: TextStyle(fontSize: 20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text("Post author"),
+                Row(
+                  children: <Widget>[
+                    Image(
+                      width: 48,
+                      height: 48,
+                      image: NetworkImage(question.avatarUrl),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          question.authorName,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                Divider(
+                  color: AppColors.flutterBlue,
+                  height: 2,
+                ),
+                Text(
+                  question.title,
+                  style: TextStyle(fontSize: 17),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
           height: MediaQuery.of(context).size.height * 0.75,
           width: MediaQuery.of(context).size.width * 0.8 - (index * 5.0),
@@ -83,18 +156,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onDragEnd(DraggableDetails dragDetails) {
+    setState(() {
+      _highlightLeftColor = Colors.white;
+      _highlightRightColor = Colors.white;
+    });
+
     final direction = dragDetails.velocity.pixelsPerSecond.direction;
     if (dragDetails.velocity.pixelsPerSecond.distance < ((_height() + _width()) / 2) * 0.2) return;
+
     if (_isRight(direction)) {
-      setState(() {
-        questions.removeAt(0);
-      });
-      print("Right! ###############");
     } else if (_isLeft(direction)) {
       setState(() {
-        questions.removeAt(0);
+        _questions = _questionBuffer.nextQuestions();
       });
-      print("Left! ###############");
     }
   }
 
@@ -105,10 +179,4 @@ class _HomePageState extends State<HomePage> {
   double _height() => MediaQuery.of(context).size.height;
 
   double _width() => MediaQuery.of(context).size.width;
-}
-
-class Question {
-  final String title;
-
-  Question(this.title);
 }
