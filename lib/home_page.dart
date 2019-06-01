@@ -109,50 +109,81 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       key: ValueKey(question.title),
       padding: const EdgeInsets.all(8.0),
       child: Card(
+        shape: _buildCardBorder(),
         elevation: (_questions.length - index).toDouble(),
         color: Colors.white,
         child: Container(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text("Post author"),
-                Row(
-                  children: <Widget>[
-                    Image(
-                      width: 48,
-                      height: 48,
-                      image: NetworkImage(question.avatarUrl),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          question.authorName,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Divider(
-                  color: AppColors.flutterBlue,
-                  height: 2,
-                ),
-                Text(
-                  question.title,
-                  style: TextStyle(fontSize: 17),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _buildAuthorHeader(question),
+              _buildDivider(),
+              _buildPostTitle(question),
+            ],
           ),
           height: MediaQuery.of(context).size.height * 0.75,
           width: MediaQuery.of(context).size.width * 0.8 - (index * 5.0),
         ),
       ),
     );
+  }
+
+  RoundedRectangleBorder _buildCardBorder() {
+    return RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(4),
+              bottomLeft: Radius.circular(4)));
+  }
+
+  Padding _buildAuthorHeader(Question question) {
+    return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: <Widget>[
+                  Image(
+                    width: 48,
+                    height: 48,
+                    image: NetworkImage(question.avatarUrl),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        question.authorName,
+                        style: TextStyle(
+                          color: AppColors.flutterBlue,
+                          fontSize: 16,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+  }
+
+  Padding _buildDivider() {
+    return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Container(
+                color: AppColors.flutterBlue,
+                height: 3,
+              ),
+            );
+  }
+
+  Padding _buildPostTitle(Question question) {
+    return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                question.title,
+                style: TextStyle(fontSize: 17),
+              ),
+            );
   }
 
   void _onDragEnd(DraggableDetails dragDetails) {
