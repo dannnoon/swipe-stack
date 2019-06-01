@@ -1,6 +1,8 @@
 # stack_matcher
 
-A new Flutter application.
+As everyone want to become famous and rich our team wanted to deliver application that can help you achive famous, and rich if you got luck.
+
+Out app will present to you question for StackOverflow and let you match with one you fill you can answer, and save someone's life.
 
 ## Getting Started
 
