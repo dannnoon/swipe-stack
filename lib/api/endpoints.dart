@@ -30,7 +30,8 @@ Future<bool> replyQuestion(String questionId, String body) async {
 
   try {
     var response = await client
-        .post(apiBaseUrl + "/2.2/posts/56406001/comments/add", body: {
+        .post(apiBaseUrl + "/2.2/posts/56406001/comments/add",
+        body: {
       'id': questionId,
       "access_token": accessToken,
       "body": body,
@@ -43,7 +44,11 @@ Future<bool> replyQuestion(String questionId, String body) async {
     } else {
       return false;
     }
-  } finally {
+  }
+  catch (e) {
+    log(e);
+  }
+  finally {
     client.close();
   }
 }

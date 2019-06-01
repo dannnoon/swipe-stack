@@ -3,8 +3,9 @@ import 'package:stack_matcher/forms/answer_form.dart';
 
 class AnswerPage extends StatefulWidget {
   final String title;
+  var questionId;
 
-  AnswerPage({this.title});
+  AnswerPage({this.title, this.questionId});
 
   @override
   _AnswerPageState createState() => _AnswerPageState();
@@ -17,7 +18,7 @@ class _AnswerPageState extends State<AnswerPage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: AnswerForm(),
+        body: AnswerForm(questionId: widget.questionId,),
     );
   }
 }
